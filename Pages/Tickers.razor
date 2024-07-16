@@ -1,0 +1,61 @@
+@page "/tickers"
+@inject TickerService TickerService
+
+<h3>My Portfolio</h3>
+
+@if (loading)
+{
+    <p>Loading...</p>
+}
+else if (tickers == null || !tickers.Any())
+{
+    <p>No tickers found in your portfolio.</p>
+}
+else
+{
+    <ul>
+        @foreach (var ticker in tickers)
+        {
+            <li>@ticker</li>
+        }
+    </ul>
+}
+
+@code {
+    private bool loading = true;
+    private List<string> tickers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TickerService.OnTickersUpdated += ReloadTickers;
+        await LoadTickers();
+    }
+
+    private async Task LoadTickers()
+    {
+        try
+        {
+            await TickerService.FetchTickers("achoudhry@Wintellisys.com"); // replace with actual username logic
+            tickers = TickerService.Tickers;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching tickers: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void ReloadTickers()
+    {
+        tickers = TickerService.Tickers;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        TickerService.OnTickersUpdated -= ReloadTickers;
+    }
+}

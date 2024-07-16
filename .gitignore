@@ -1,0 +1,29 @@
+# .gitignore for .NET projects
+
+## Ignore build output
+bin/
+obj/
+
+## Ignore user-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Ignore Rider project files
+.idea/
+
+## Ignore Visual Studio Code project files
+.vscode/
+
+## Ignore temporary files
+~$*
+
+## Ignore logs
+*.log
+
+## Ignore other files
+**/node_modules
+**/wwwroot/dist
+**/wwwroot/node_modules

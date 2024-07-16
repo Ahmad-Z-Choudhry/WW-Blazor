@@ -1,0 +1,33 @@
+@page "/stock/{ticker}"
+@using Models
+@inject ApiService ApiService
+
+<h3>Stock Data</h3>
+
+@if (stockData == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>
+        <h4>@stockData.Ticker (@stockData.RealtimePrice)</h4>
+        <p>@stockData.About.Description</p>
+        <h5>Info</h5>
+        <p>Previous Close: @stockData.Info.PreviousClose</p>
+        <p>Market Cap: @stockData.Info.MarketCap</p>
+        <!-- Display more fields as needed -->
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Ticker { get; set; }
+
+    private StockData stockData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        stockData = await ApiService.FetchStockData(Ticker);
+    }
+}

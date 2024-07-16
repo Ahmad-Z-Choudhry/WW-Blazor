@@ -1,0 +1,155 @@
+@page "/searchticker"
+@using Models
+@inject ApiService ApiService
+
+<h3>Search Ticker</h3>
+
+<div>
+    <input type="text" @bind="ticker" @bind:event="oninput" @onkeypress="HandleKeyPress" placeholder="Enter ticker" />
+    <button @onclick="Search_Ticker">Search</button>
+</div>
+
+@if (isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (errorMessage != null)
+{
+    <p style="color:red">@errorMessage</p>
+}
+else if (stockData != null)
+{
+    <div>
+        <h4>@stockData.Ticker (@stockData.RealtimePrice)</h4>
+        <p>@stockData.About.Description</p>
+        <h5>Info</h5>
+        <p>Previous Close: @stockData.Info.PreviousClose</p>
+        <p>Market Cap: @stockData.Info.MarketCap</p>
+        <p>Day Range: @stockData.Info.DayRange.Low - @stockData.Info.DayRange.High</p>
+        <p>Year Range: @stockData.Info.YearRange.Low - @stockData.Info.YearRange.High</p>
+        <p>PE Ratio: @stockData.Info.PeRatio</p>
+        <p>Dividend Yield: @stockData.Info.DividendYield</p>
+        <p>Primary Exchange: @stockData.Info.PrimaryExchange</p>
+        <p>Average Volume: @stockData.Info.AverageVolume</p>
+
+        <h5>Historical Prices</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var priceData in stockData.GraphInfo.HistoricalPrices)
+                {
+                    <tr>
+                        <td>@priceData.Date</td>
+                        <td>@priceData.Price</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <h5>Hourly Prices</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Hour</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var priceData in stockData.GraphInfo.HourlyPrices)
+                {
+                    <tr>
+                        <td>@priceData.Date</td>
+                        <td>@priceData.Price</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div>
+            @if (isInPortfolio)
+            {
+                <button @onclick="RemoveFromPortfolio">Remove from Portfolio</button>
+            }
+            else
+            {
+                <button @onclick="AddToPortfolio">Add to Portfolio</button>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private string ticker;
+    private StockData stockData;
+    private bool isLoading;
+    private string errorMessage;
+    private bool isInPortfolio;
+
+    private async Task Search_Ticker()
+    {
+        isLoading = true;
+        errorMessage = null;
+        stockData = null;
+
+        try
+        {
+            ticker = ticker.ToUpper(); // Ensure the ticker is uppercase before searching
+            stockData = await ApiService.FetchStockData(ticker);
+            if (stockData == null)
+            {
+                errorMessage = "Ticker not in our database.";
+            }
+            else
+            {
+                await CheckIfTickerInPortfolio();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Ticker not in our database.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CheckIfTickerInPortfolio()
+    {
+        var response = await ApiService.FetchTickers("achoudhry@Wintellisys.com"); // Replace with actual username logic
+        var tickers = await response.Content.ReadFromJsonAsync<List<string>>();
+        isInPortfolio = tickers?.Contains(ticker.ToUpper()) ?? false;
+    }
+
+    private async Task AddToPortfolio()
+    {
+        var response = await ApiService.AddToPortfolio(ticker, "achoudhry@Wintellisys.com"); // Replace with actual username logic
+        if (response.IsSuccessStatusCode)
+        {
+            isInPortfolio = true;
+        }
+    }
+
+    private async Task RemoveFromPortfolio()
+    {
+        var response = await ApiService.RemoveFromPortfolio(ticker, "achoudhry@Wintellisys.com"); // Replace with actual username logic
+        if (response.IsSuccessStatusCode)
+        {
+            isInPortfolio = false;
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ticker = ticker.ToUpper(); // Ensure the ticker is uppercase before searching
+            await Search_Ticker();
+        }
+    }
+}

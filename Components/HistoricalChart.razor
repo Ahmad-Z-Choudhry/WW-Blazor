@@ -1,0 +1,30 @@
+@using System.Collections.Generic
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+@using MyBlazorApp.Models
+@implements IDisposable
+
+<canvas id="historicalChart"></canvas>
+
+@code {
+    [Parameter] public List<PriceData> HistoricalPrices { get; set; }
+
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+
+    private DotNetObjectReference<HistoricalChart> objRef;
+    private ElementReference chartCanvas;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && HistoricalPrices != null && HistoricalPrices.Any())
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("drawChart", chartCanvas, HistoricalPrices.Select(p => p.Date).ToList(), HistoricalPrices.Select(p => p.Price).ToList());
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+}

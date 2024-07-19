@@ -1,87 +1,82 @@
 @page "/searchticker"
 @using Models
 @inject ApiService ApiService
+@using Components
 
-<h3>Search Ticker</h3>
-
-<div>
-    <input type="text" @bind="ticker" @bind:event="oninput" @onkeypress="HandleKeyPress" placeholder="Enter ticker" />
-    <button @onclick="Search_Ticker">Search</button>
-</div>
-
-@if (isLoading)
-{
-    <p><em>Loading...</em></p>
-}
-else if (errorMessage != null)
-{
-    <p style="color:red">@errorMessage</p>
-}
-else if (stockData != null)
-{
-    <div>
-        <h4>@stockData.Ticker (@stockData.RealtimePrice)</h4>
-        <p>@stockData.About.Description</p>
-        <h5>Info</h5>
-        <p>Previous Close: @stockData.Info.PreviousClose</p>
-        <p>Market Cap: @stockData.Info.MarketCap</p>
-        <p>Day Range: @stockData.Info.DayRange.Low - @stockData.Info.DayRange.High</p>
-        <p>Year Range: @stockData.Info.YearRange.Low - @stockData.Info.YearRange.High</p>
-        <p>PE Ratio: @stockData.Info.PeRatio</p>
-        <p>Dividend Yield: @stockData.Info.DividendYield</p>
-        <p>Primary Exchange: @stockData.Info.PrimaryExchange</p>
-        <p>Average Volume: @stockData.Info.AverageVolume</p>
-
-        <h5>Historical Prices</h5>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var priceData in stockData.GraphInfo.HistoricalPrices)
-                {
-                    <tr>
-                        <td>@priceData.Date</td>
-                        <td>@priceData.Price</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <h5>Hourly Prices</h5>
-        <table>
-            <thead>
-                <tr>
-                    <th>Hour</th>
-                    <th>Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var priceData in stockData.GraphInfo.HourlyPrices)
-                {
-                    <tr>
-                        <td>@priceData.Date</td>
-                        <td>@priceData.Price</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <div>
-            @if (isInPortfolio)
-            {
-                <button @onclick="RemoveFromPortfolio">Remove from Portfolio</button>
-            }
-            else
-            {
-                <button @onclick="AddToPortfolio">Add to Portfolio</button>
-            }
+<div class="container mt-4">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" @bind="ticker" @bind:event="oninput" @onkeypress="HandleKeyPress" placeholder="Search Ticker" />
+        <div class="input-group-append">
+            <button class="btn btn-primary" @onclick="Search_Ticker">Search</button>
         </div>
     </div>
-}
+
+    @if (isLoading)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else if (errorMessage != null)
+    {
+        <p class="text-danger">@errorMessage</p>
+    }
+    else if (stockData != null)
+    {
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">@stockData.Ticker (@stockData.RealtimePrice)</h4>
+                    </div>
+                    <div>
+                        @if (isInPortfolio)
+                        {
+                            <button class="btn btn-danger" @onclick="RemoveFromPortfolio">Remove from Portfolio</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-success" @onclick="AddToPortfolio">Add to Portfolio</button>
+                        }
+                    </div>
+                </div>
+                <p class="card-text">@stockData.About.Description</p>
+                
+                <h5>Info</h5>
+                <ul class="list-group">
+                    <li class="list-group-item">Previous Close: @stockData.Info.PreviousClose</li>
+                    <li class="list-group-item">Market Cap: @stockData.Info.MarketCap</li>
+                    <li class="list-group-item">Day Range: @stockData.Info.DayRange.Low - @stockData.Info.DayRange.High</li>
+                    <li class="list-group-item">Year Range: @stockData.Info.YearRange.Low - @stockData.Info.YearRange.High</li>
+                    <li class="list-group-item">PE Ratio: @stockData.Info.PeRatio</li>
+                    <li class="list-group-item">Dividend Yield: @stockData.Info.DividendYield</li>
+                    <li class="list-group-item">Primary Exchange: @stockData.Info.PrimaryExchange</li>
+                    <li class="list-group-item">Average Volume: @stockData.Info.AverageVolume</li>
+                </ul>
+
+                @* <h5 class="mt-4">Historical Prices</h5>
+                <HistoricalChart HistoricalPrices="stockData.GraphInfo.HistoricalPrices" /> *@
+
+                @* <h5 class="mt-4">Hourly Prices</h5>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Hour</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var priceData in stockData.GraphInfo.HourlyPrices)
+                        {
+                            <tr>
+                                <td>@priceData.Date</td>
+                                <td>@priceData.Price</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table> *@
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     private string ticker;
